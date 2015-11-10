@@ -24,6 +24,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import com.star.criminalintent.model.Crime;
 import com.star.criminalintent.model.Suspect;
@@ -55,6 +57,9 @@ public class CrimeFragment extends Fragment {
     private Button mReportButton;
     private Button mSuspectButton;
     private Button mDialButton;
+
+    private ImageView mPhotoView;
+    private ImageButton mCameraButton;
 
     public static CrimeFragment newInstance(UUID crimeId) {
         Bundle args = new Bundle();
@@ -203,6 +208,9 @@ public class CrimeFragment extends Fragment {
         } else {
             mDialButton.setEnabled(false);
         }
+
+        mPhotoView = (ImageView) view.findViewById(R.id.crime_photo);
+        mCameraButton = (ImageButton) view.findViewById(R.id.crime_camera);
 
         return  view;
     }
