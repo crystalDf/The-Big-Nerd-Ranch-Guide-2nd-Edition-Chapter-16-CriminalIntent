@@ -70,4 +70,8 @@ public class Crime {
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.US);
         return sdf.format(mDate);
     }
+
+    public String getPhotoFileName() {
+        return "IMG_" + getId().toString() + ".jpg";
+    }
 }

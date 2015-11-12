@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
 
 import com.star.criminalintent.database.CrimeBaseHelper;
 import com.star.criminalintent.database.CrimeCursorWrapper;
@@ -14,6 +15,7 @@ import com.star.criminalintent.database.SuspectCursorWrapper;
 import com.star.criminalintent.model.Crime;
 import com.star.criminalintent.model.Suspect;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -173,5 +175,13 @@ public class CrimeLab {
         contentValues.put(SuspectTable.Cols.CRIME_COUNT, suspect.getCrimeCount());
 
         return contentValues;
+    }
+
+    public File getPhotoFile(Crime crime) {
+        File externalFilesDir = mContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        return (externalFilesDir != null)
+                ? new File(externalFilesDir, crime.getPhotoFileName())
+                : null;
     }
 }
