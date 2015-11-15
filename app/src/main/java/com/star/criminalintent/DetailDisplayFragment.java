@@ -9,6 +9,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 
 public class DetailDisplayFragment extends DialogFragment {
@@ -32,18 +33,24 @@ public class DetailDisplayFragment extends DialogFragment {
         View view = LayoutInflater.from(getContext()).inflate(
                 R.layout.fragment_detail_display, null);
 
-        ImageView imageView = (ImageView) view.findViewById(R.id.detail_photo);
+        final ImageView imageView = (ImageView) view.findViewById(R.id.detail_photo);
 
-        String path = (String) getArguments().getSerializable(ARG_PATH);
-        Bitmap bitmap = PictureUtils.getScaledBitmap(
-                path, getActivity());
+        imageView.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                String path = (String) getArguments().getSerializable(ARG_PATH);
+                Bitmap bitmap = PictureUtils.getScaledBitmap(
+                        path, imageView.getWidth(), imageView.getHeight());
 
-        imageView.setImageBitmap(bitmap);
+                imageView.setImageBitmap(bitmap);
+            }
+        });
 
         return new AlertDialog.Builder(getContext())
-                    .setView(view)
-                    .setTitle(R.string.detail_display_title)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .create();
+                .setView(view)
+                .setTitle(R.string.detail_display_title)
+                .setPositiveButton(android.R.string.ok, null)
+                .create();
     }
 }
