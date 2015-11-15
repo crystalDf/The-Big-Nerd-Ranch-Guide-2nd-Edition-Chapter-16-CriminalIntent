@@ -44,6 +44,7 @@ public class CrimeFragment extends Fragment {
     private static final String ARG_CRIME_ID = "crime_id";
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
+    private static final String DIALOG_DETAIL_DISPLAY = "DialogDetailDisplay";
 
     public static final String EXTRA_DATE = "date";
 
@@ -399,6 +400,15 @@ public class CrimeFragment extends Fragment {
         } else {
             Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), getActivity());
             mPhotoView.setImageBitmap(bitmap);
+            mPhotoView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    FragmentManager fragmentManager = getFragmentManager();
+                    DetailDisplayFragment detailDisplayFragment =
+                            DetailDisplayFragment.newInstance(mPhotoFile.getPath());
+                    detailDisplayFragment.show(fragmentManager, DIALOG_DETAIL_DISPLAY);
+                }
+            });
         }
     }
 }
