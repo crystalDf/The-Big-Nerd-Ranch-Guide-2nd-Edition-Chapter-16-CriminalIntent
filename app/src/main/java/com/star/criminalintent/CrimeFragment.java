@@ -48,8 +48,6 @@ public class CrimeFragment extends Fragment {
     private static final String DIALOG_TIME = "DialogTime";
     private static final String DIALOG_DETAIL_DISPLAY = "DialogDetailDisplay";
 
-    public static final String EXTRA_DATE = "date";
-
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_CONTACT = 1;
     private static final int REQUEST_PHOTO = 2;
@@ -116,7 +114,6 @@ public class CrimeFragment extends Fragment {
         });
 
         mDateButton = (Button) view.findViewById(R.id.crime_date);
-        updateDate();
         mDateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -130,9 +127,7 @@ public class CrimeFragment extends Fragment {
                     datePickerFragment.show(fragmentManager, DIALOG_DATE);
                 } else if (getResources().getConfiguration().orientation
                         == Configuration.ORIENTATION_PORTRAIT) {
-                    Intent intent = new Intent(CrimeFragment.this.getActivity(),
-                            DatePickerActivity.class);
-                    intent.putExtra(EXTRA_DATE, mCrime.getDate());
+                    Intent intent = DatePickerActivity.newIntent(getActivity(), mCrime.getDate());
                     startActivityForResult(intent, REQUEST_DATE);
                 }
 
@@ -140,7 +135,6 @@ public class CrimeFragment extends Fragment {
         });
 
         mTimeButton = (Button) view.findViewById(R.id.crime_time);
-        updateTime();
         mTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -153,9 +147,7 @@ public class CrimeFragment extends Fragment {
                     timePickerFragment.show(fragmentManager, DIALOG_TIME);
                 } else if (getResources().getConfiguration().orientation
                         == Configuration.ORIENTATION_PORTRAIT) {
-                    Intent intent = new Intent(CrimeFragment.this.getActivity(),
-                            TimePickerActivity.class);
-                    intent.putExtra(EXTRA_DATE, mCrime.getDate());
+                    Intent intent = TimePickerActivity.newIntent(getActivity(), mCrime.getDate());
                     startActivityForResult(intent, REQUEST_DATE);
                 }
             }
@@ -262,6 +254,18 @@ public class CrimeFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        updateUI();
+    }
+
+    private void updateUI() {
+        mDateButton.setText(mCrime.getFormattedDate());
+        mTimeButton.setText(mCrime.getFormattedTime());
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
 
@@ -278,99 +282,111 @@ public class CrimeFragment extends Fragment {
         if (requestCode == REQUEST_DATE) {
             Date date = (Date) data.getSerializableExtra(PickerFragment.EXTRA_DATE);
             mCrime.setDate(date);
-            updateDate();
-            updateTime();
+            updateUI();
         } else if (requestCode == REQUEST_CONTACT) {
-            Uri contactUri = data.getData();
-            String[] columns = new String[] {
-                    ContactsContract.Contacts._ID,
-                    ContactsContract.Contacts.DISPLAY_NAME
-            };
+            updateChooseSuspectButton(data);
+            updateMakeAPhoneCallButton();
 
-            Cursor cursor = getActivity().getContentResolver().query(contactUri, columns,
-                    null, null, null);
-
-            if (cursor == null) {
-                return;
-            }
-
-            try {
-                if (cursor.getCount() > 0) {
-                    cursor.moveToFirst();
-                    String contactId = cursor.getString(
-                            cursor.getColumnIndex(ContactsContract.Contacts._ID));
-                    String displayName = cursor.getString(
-                            cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-
-                    Suspect oldSuspect = mCrime.getSuspect();
-
-                    if (oldSuspect != null) {
-                        oldSuspect.setCrimeCount(oldSuspect.getCrimeCount() - 1);
-                        CrimeLab.getInstance(getContext()).updateSuspect(oldSuspect);
-                    }
-
-                    Suspect suspect = CrimeLab.getInstance(getContext()).getSuspect(contactId);
-                    if (suspect == null) {
-                        suspect = new Suspect();
-                        suspect.setContactId(contactId);
-                        suspect.setDisplayName(displayName);
-                        CrimeLab.getInstance(getContext()).addSuspect(suspect);
-                    }
-                    suspect.setCrimeCount(suspect.getCrimeCount() + 1);
-                    CrimeLab.getInstance(getContext()).updateSuspect(suspect);
-
-                    mCrime.setSuspect(suspect);
-
-                    mSuspectButton.setText(mCrime.getSuspect().getDisplayName());
-                    mDialButton.setEnabled(true);
-                }
-            } finally {
-                cursor.close();
-            }
-
-            if (mCrime.getSuspect() == null) {
-                return;
-            }
-
-            Uri commonDataKindPhoneUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
-            columns = new String[] {
-                    ContactsContract.CommonDataKinds.Phone.NUMBER
-            };
-            String whereClause = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ? ";
-            String[] whereArgs = new String[] {mCrime.getSuspect().getContactId()};
-
-            cursor = getActivity().getContentResolver().query(commonDataKindPhoneUri,
-                    columns, whereClause, whereArgs, null);
-
-            if (cursor == null) {
-                return;
-            }
-
-            try {
-                if (cursor.getCount() > 0) {
-                    cursor.moveToFirst();
-                    String phoneNumber = cursor.getString(
-                            cursor.getColumnIndex(
-                                    ContactsContract.CommonDataKinds.Phone.NUMBER));
-                    mCrime.getSuspect().setPhoneNumber(phoneNumber);
-                    CrimeLab.getInstance(getContext()).updateSuspect(mCrime.getSuspect());
-
-                    mDialButton.setText(phoneNumber);
-                }
-            } finally {
-                cursor.close();
-            }
+            CrimeLab.getInstance(getContext()).updateSuspect(mCrime.getSuspect());
         } else if (requestCode == REQUEST_PHOTO) {
             updatePhotoView();
         }
     }
 
-    private void updateDate() {
-        mDateButton.setText(mCrime.getFormattedDate());
+    private void updateChooseSuspectButton(Intent data) {
+        Uri contactUri = data.getData();
+
+        String[] columns = new String[] {
+                ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME
+        };
+
+        Cursor cursor = getActivity().getContentResolver().query(contactUri, columns,
+                null, null, null);
+
+        if (cursor == null) {
+            return;
+        }
+
+        try {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                String contactId = cursor.getString(
+                        cursor.getColumnIndex(ContactsContract.Contacts._ID));
+                String displayName = cursor.getString(
+                        cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+
+                Suspect suspect = updateAndGetSuspect(contactId, displayName);
+
+                mCrime.setSuspect(suspect);
+
+                mSuspectButton.setText(mCrime.getSuspect().getDisplayName());
+                mDialButton.setEnabled(true);
+            }
+        } finally {
+            cursor.close();
+        }
+
     }
 
-    private void updateTime() {
-        mTimeButton.setText(mCrime.getFormattedTime());
+    private Suspect updateAndGetSuspect(String contactId, String displayName) {
+        Suspect oldSuspect = mCrime.getSuspect();
+
+        if (oldSuspect != null) {
+            oldSuspect.setCrimeCount(oldSuspect.getCrimeCount() - 1);
+            CrimeLab.getInstance(getContext()).updateSuspect(oldSuspect);
+        }
+
+        Suspect newSuspect = CrimeLab.getInstance(getContext()).getSuspect(contactId);
+
+        if (newSuspect == null) {
+            newSuspect = new Suspect();
+            newSuspect.setContactId(contactId);
+            newSuspect.setDisplayName(displayName);
+            CrimeLab.getInstance(getContext()).addSuspect(newSuspect);
+        }
+
+        newSuspect.setCrimeCount(newSuspect.getCrimeCount() + 1);
+
+        return newSuspect;
+    }
+
+    private void updateMakeAPhoneCallButton() {
+        if (mCrime.getSuspect() == null) {
+            return;
+        }
+
+        Uri commonDataKindPhoneUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+
+        String[] columns = new String[] {
+                ContactsContract.CommonDataKinds.Phone.NUMBER
+        };
+
+        String whereClause = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ? ";
+        String[] whereArgs = new String[] {mCrime.getSuspect().getContactId()};
+
+        Cursor cursor = getActivity().getContentResolver().query(commonDataKindPhoneUri,
+                columns, whereClause, whereArgs, null);
+
+        if (cursor == null) {
+            return;
+        }
+
+        try {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                String phoneNumber = cursor.getString(
+                        cursor.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.NUMBER));
+
+                mCrime.getSuspect().setPhoneNumber(phoneNumber);
+
+                mDialButton.setText(phoneNumber);
+            }
+        } finally {
+            cursor.close();
+        }
+
     }
 
     @Override
