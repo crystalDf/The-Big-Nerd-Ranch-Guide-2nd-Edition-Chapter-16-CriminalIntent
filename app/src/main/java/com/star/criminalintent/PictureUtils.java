@@ -44,4 +44,5 @@ public class PictureUtils {
 
         return getScaledBitmap(path, size.x, size.y);
     }
+
 }

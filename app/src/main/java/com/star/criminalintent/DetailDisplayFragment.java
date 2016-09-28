@@ -53,4 +53,5 @@ public class DetailDisplayFragment extends DialogFragment {
                 .setPositiveButton(android.R.string.ok, null)
                 .create();
     }
+
 }

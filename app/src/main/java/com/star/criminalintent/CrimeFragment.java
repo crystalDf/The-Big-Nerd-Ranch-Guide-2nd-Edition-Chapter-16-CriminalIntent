@@ -441,4 +441,5 @@ public class CrimeFragment extends Fragment {
             mPhotoView.setClickable(true);
         }
     }
+
 }
