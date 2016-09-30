@@ -232,24 +232,24 @@ public class CrimeFragment extends Fragment {
             }
         });
 
-        final Intent captureImage = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        final Intent captureImageIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         mCameraButton = (ImageButton) view.findViewById(R.id.crime_camera);
         mCameraButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(captureImage, REQUEST_PHOTO);
+                startActivityForResult(captureImageIntent, REQUEST_PHOTO);
             }
         });
 
         boolean canTakePhoto = (mPhotoFile != null) &&
-                (captureImage.resolveActivity(packageManager) != null);
+                (captureImageIntent.resolveActivity(packageManager) != null);
 
         mCameraButton.setEnabled(canTakePhoto);
 
         if (canTakePhoto) {
             Uri targetUri = Uri.fromFile(mPhotoFile);
-            captureImage.putExtra(MediaStore.EXTRA_OUTPUT, targetUri);
+            captureImageIntent.putExtra(MediaStore.EXTRA_OUTPUT, targetUri);
         }
 
         return  view;
