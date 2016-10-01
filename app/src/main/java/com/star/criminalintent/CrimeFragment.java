@@ -116,7 +116,6 @@ public class CrimeFragment extends Fragment {
         mDateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (getResources().getConfiguration().orientation
                         == Configuration.ORIENTATION_LANDSCAPE) {
                     FragmentManager fragmentManager = getFragmentManager();
@@ -129,7 +128,6 @@ public class CrimeFragment extends Fragment {
                     Intent intent = DatePickerActivity.newIntent(getActivity(), mCrime.getDate());
                     startActivityForResult(intent, REQUEST_DATE);
                 }
-
             }
         });
 
