@@ -8,7 +8,6 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
@@ -212,13 +211,12 @@ public class CrimeFragment extends Fragment {
         }
 
         mPhotoView = (ImageView) view.findViewById(R.id.crime_photo);
-        mPhotoView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        mPhotoView.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 updatePhotoView();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    mPhotoView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                }
+                mPhotoView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
 
