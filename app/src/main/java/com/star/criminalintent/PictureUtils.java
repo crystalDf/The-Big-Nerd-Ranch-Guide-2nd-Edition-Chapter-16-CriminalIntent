@@ -18,15 +18,10 @@ public class PictureUtils {
         float srcWidth = options.outWidth;
         float srcHeight = options.outHeight;
 
-        int inSampleSize = 1;
+        int widthRatio = (int) (srcWidth / destWidth);
+        int heightRatio = (int) (srcHeight / destHeight);
 
-        if ((srcWidth > destWidth) || (srcHeight > destHeight)) {
-            int widthRatio = (int) (srcWidth / destWidth);
-            int heightRatio = (int) (srcHeight / destHeight);
-            inSampleSize = Math.max(widthRatio, heightRatio);
-        }
-
-        options.inSampleSize = inSampleSize;
+        options.inSampleSize = Math.max(Math.max(widthRatio, heightRatio), 1);
         options.inJustDecodeBounds = false;
         return BitmapFactory.decodeFile(path, options);
     }
